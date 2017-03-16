@@ -95,7 +95,7 @@ public class HostActivity extends PartyActivity {
 
     @Subscribe
     public void onSongAddEvent(SongAddEvent e) {
-        trackAdapter.add(e.request);
+        trackAdapter.insert(e.request, e.index);
     }
 
     @Subscribe

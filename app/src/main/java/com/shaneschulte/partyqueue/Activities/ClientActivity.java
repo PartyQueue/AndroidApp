@@ -9,7 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.android.volley.toolbox.StringRequest;
-import com.shaneschulte.partyqueue.Events.SongChangeEvent;
 import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.R;
 import com.shaneschulte.partyqueue.SongRequest;
@@ -117,11 +116,7 @@ public class ClientActivity extends PartyActivity {
         hostname = getIntent().getStringExtra("HOST_URL");
         mRefresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
 
-        mRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override public void onRefresh() {
-                initiateRefresh();
-            }
-        });
+        mRefresh.setOnRefreshListener(this::initiateRefresh);
     }
 
     public void initiateRefresh() {

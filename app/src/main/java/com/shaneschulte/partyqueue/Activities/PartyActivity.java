@@ -22,13 +22,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.shaneschulte.partyqueue.Events.SongChangeEvent;
-import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.R;
 import com.shaneschulte.partyqueue.SongRequest;
 import com.shaneschulte.partyqueue.TrackAdapter;
 import com.shaneschulte.partyqueue.Utils;
-import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
@@ -154,19 +151,14 @@ public abstract class PartyActivity extends AppCompatActivity {
                 oldColor,
                 c2);
         oldColor = c2;
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        valueAnimator.addUpdateListener(animator -> {
+            GradientDrawable gd = new GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[] {(Integer) animator.getAnimatedValue(),0x000});
 
-            @Override
-            public void onAnimationUpdate(final ValueAnimator animator) {
-                GradientDrawable gd = new GradientDrawable(
-                        GradientDrawable.Orientation.TOP_BOTTOM,
-                        new int[] {(Integer) animator.getAnimatedValue(),0x000});
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    gradientZone.setBackground(gd);
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                gradientZone.setBackground(gd);
             }
-
         });
         valueAnimator.setDuration(1000);
         valueAnimator.start();

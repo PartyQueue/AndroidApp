@@ -16,7 +16,9 @@ import com.spotify.sdk.android.player.SpotifyPlayer;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -30,7 +32,6 @@ class SongRequestManager {
     private SpotifyService spotify;
     private List<SongRequest> songQueue;
     private SongRequest       songNowPlaying;
-    private List<SongRequest> songHistory;
 
     private static final String TAG = "SongRequestManager";
     private boolean loggedIn;
@@ -43,7 +44,6 @@ class SongRequestManager {
         loggedIn = false;
 
         songQueue   = new ArrayList<>();
-        songHistory = new ArrayList<>();
     }
 
     void startPlayer(SpotifyPlayer mPlayer) {
@@ -64,9 +64,6 @@ class SongRequestManager {
         if(mPlayer == null) return;
         if(!loggedIn) return;
 
-        if(songNowPlaying != null)
-            songHistory.add(songNowPlaying.setMeta(null));
-
         if(songQueue.isEmpty()) {
             songNowPlaying = null;
             return;
@@ -79,19 +76,43 @@ class SongRequestManager {
         postEvent(new SongChangeEvent(songNowPlaying));
     }
 
+    private boolean isInQueue(String track) {
+        for(SongRequest r : songQueue) {
+            if(r.track.equals(track)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int findRequestInsertIndex(SongRequest r) {
+        Set<String> set = new HashSet<>();
+        int i;
+        for(i=0; i<songQueue.size(); ++i) {
+            if(set.contains(songQueue.get(i).ip)) { // Duplicate detected
+                if(!set.contains(r.ip)) return i; // Found our spot
+                set.clear();
+            }
+            set.add(songQueue.get(i).ip);
+        }
+        return i;
+    }
+
     void requestNewSong(String track, String addedBy, String remoteIpAddress) {
+        SongRequest r = new SongRequest(track, addedBy, remoteIpAddress);
         spotify.getTrack(track, new Callback<Track>() {
-            private SongRequest r;
             @Override
             public void success(Track track, retrofit.client.Response response) {
+                if(isInQueue(r.track)) return;
                 r.setMeta(track);
                 if(songNowPlaying == null) {
                     songQueue.add(r);
                     playNextSong();
                 }
                 else {
-                    songQueue.add(r);
-                    postEvent(new SongAddEvent(r));
+                    int index = findRequestInsertIndex(r);
+                    songQueue.add(index, r);
+                    postEvent(new SongAddEvent(r, index));
                 }
             }
 
@@ -99,11 +120,7 @@ class SongRequestManager {
             public void failure(RetrofitError error) {
                 Log.e(TAG, error.getMessage());
             }
-            Callback<Track> init(SongRequest r) {
-                this.r = r;
-                return this;
-            }
-        }.init(new SongRequest(track, addedBy, remoteIpAddress)));
+        });
     }
 
     void handlePlaybackEvent(PlayerEvent playerEvent) {
@@ -129,14 +146,10 @@ class SongRequestManager {
         return Collections.unmodifiableList(songQueue);
     }
 
-    void postEvent(Object o) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                PartyApp.getInstance().getBus().post(o);
-            }
-        });
+    private void postEvent(Object o) {
+        new Handler(Looper.getMainLooper()).post(() -> PartyApp.getInstance().getBus().post(o));
     }
+
     SongRequest getNowPlaying() {
         return songNowPlaying;
     }

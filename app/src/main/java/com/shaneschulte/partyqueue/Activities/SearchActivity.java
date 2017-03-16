@@ -5,8 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -56,13 +54,10 @@ public class SearchActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.lvItems);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(
-                new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        SongRequest sr = adapter.getItem(position);
-                        requestSong(sr);
-                        adapter.remove(sr);
-                    }
+                (parent, view, position, id) -> {
+                    SongRequest sr = adapter.getItem(position);
+                    requestSong(sr);
+                    adapter.remove(sr);
                 });
 
         host_add_url = getIntent().getStringExtra("HOST_URL");
