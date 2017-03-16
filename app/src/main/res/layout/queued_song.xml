@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dip" >
+
+    <!--  ListRow Left sied Thumbnail image -->
+    <LinearLayout android:id="@+id/thumbnail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="1dip"
+        android:layout_alignParentLeft="true"
+        android:background="@drawable/image_bg"
+        android:layout_marginRight="5dip"
+        android:layout_marginTop="1dip">
+
+        <ImageView
+            android:id="@+id/list_image"
+            android:layout_width="60dip"
+            android:layout_height="60dip" />
+
+    </LinearLayout>
+
+    <!-- Title Of Song-->
+
+    <!-- Artist Name -->
+    <TextView
+        android:id="@+id/artist"
+        android:ellipsize="marquee"
+        android:maxLines="1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:textColor="#CCC"
+        android:textSize="12dip"
+        android:layout_marginTop="4dip"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:text="artist" />
+
+    <!-- Rightend Duration -->
+    <TextView
+        android:id="@+id/duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/thumbnail"
+        android:text="5:45"
+        android:gravity="left"
+        android:layout_margin="1dp"
+        android:padding="2dp"
+        android:layout_alignLeft="@+id/thumbnail"
+        android:background="#AA000000"
+        android:textSize="12dip"
+        android:textColor="#CCC"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/title"
+        android:ellipsize="marquee"
+        android:maxLines="1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Song Name"
+        android:textColor="#FFF"
+        android:typeface="sans"
+        android:textSize="17dip"
+        android:textStyle="bold"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:layout_toEndOf="@+id/thumbnail" />
+
+    <TextView
+        android:id="@+id/addedBy"
+        android:ellipsize="marquee"
+        android:maxLines="1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#CCC"
+        android:textSize="12dip"
+        android:text="Added by: "
+        android:layout_marginTop="4dip"
+        android:layout_below="@+id/artist"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:layout_toEndOf="@+id/thumbnail" />
+
+    <!-- Rightend Arrow -->
+
+</RelativeLayout>

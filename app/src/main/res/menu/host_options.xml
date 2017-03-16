@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:id="@+id/action_share"
+        app:actionProviderClass=
+            "android.support.v7.widget.ShareActionProvider"
+        android:title="Share Link"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="Search..."
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="always|collapseActionView"
+        />
+
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_end"
+        android:title="Stop Hosting"
+        app:showAsAction="never"/>
+
+</menu>

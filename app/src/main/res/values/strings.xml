@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Party Queue</string>
+    <string name="addedBy">Added By: %1$s</string>
+</resources>

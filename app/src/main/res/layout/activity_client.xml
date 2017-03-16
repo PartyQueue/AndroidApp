@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="@color/colorBackground"
+    android:layout_height="match_parent"
+    tools:context="com.shaneschulte.partyqueue.Activities.ClientActivity">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:visibility="visible"
+        android:layout_width="fill_parent"
+        android:layout_height="140dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:scaleType="centerCrop"
+            android:id="@+id/fadedArt"/>
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:src="@drawable/fade" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/fade2" />
+
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:visibility="invisible"
+            android:layout_width="fill_parent"
+            android:layout_height="140dp"
+            android:orientation="horizontal"
+            android:paddingLeft="15dip"
+            android:paddingTop="15dip"
+            android:paddingRight="5dip"
+            android:paddingBottom="3dip"
+            android:id="@+id/nowPlayingLayout">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Up Next"
+                android:textColor="#FFF"
+                android:typeface="sans"
+                android:textSize="18dip"
+                android:textStyle="bold"
+                android:gravity="bottom"
+                android:layout_centerHorizontal="true"/>
+        <!--  ListRow Left sied Thumbnail image -->
+        <LinearLayout android:id="@+id/nowThumbnail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="1dip"
+            android:layout_alignParentLeft="true"
+            android:background="@drawable/image_bg"
+            android:layout_marginRight="10dip">
+
+            <ImageView
+                android:id="@+id/nowImage"
+                android:layout_width="70dip"
+                android:layout_height="70dip" />
+
+        </LinearLayout>
+
+        <!-- Title Of Song-->
+
+        <!-- Artist Name -->
+        <TextView
+            android:id="@+id/nowArtist"
+            android:ellipsize="marquee"
+            android:maxLines="1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/nowTitle"
+            android:textColor="#CCC"
+            android:textSize="12dip"
+            android:layout_marginTop="6dip"
+            android:layout_toRightOf="@+id/nowThumbnail"
+            android:text="artist" />
+
+        <!-- Rightend Duration -->
+        <TextView
+            android:id="@+id/nowDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/nowThumbnail"
+            android:text="5:45"
+            android:layout_margin="1dp"
+            android:gravity="left"
+            android:padding="2dp"
+            android:layout_alignLeft="@+id/nowThumbnail"
+            android:background="#AA000000"
+            android:textSize="12dip"
+            android:textColor="#CCC"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/nowTitle"
+            android:ellipsize="marquee"
+            android:maxLines="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Song Name"
+            android:textColor="#FFF"
+            android:typeface="sans"
+            android:textSize="18dip"
+            android:textStyle="bold"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/nowThumbnail"
+            android:layout_toEndOf="@+id/nowThumbnail" />
+
+
+        <TextView
+            android:id="@+id/nowAddedBy"
+            android:ellipsize="marquee"
+            android:maxLines="1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#CCC"
+            android:textSize="12dip"
+            android:text="Added by: "
+            android:layout_marginTop="6dip"
+            android:layout_below="@+id/nowArtist"
+            android:layout_toRightOf="@+id/nowThumbnail"
+            android:layout_toEndOf="@+id/nowThumbnail" />
+
+        <!-- Rightend Arrow -->
+    </RelativeLayout>
+    </RelativeLayout>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_marginTop="140dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/backgroundZone"
+        android:background="@drawable/solid_bg">
+
+    <TextView
+        android:text="Nothing Queued"
+        android:textSize="24dp"
+        android:textColor="#999"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/nothingPlaying"
+        android:visibility="visible" />
+        <android.support.v4.widget.SwipeRefreshLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/swiperefresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+    <ListView
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/lvItems"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+        </android.support.v4.widget.SwipeRefreshLayout>
+    </RelativeLayout>
+</RelativeLayout>
