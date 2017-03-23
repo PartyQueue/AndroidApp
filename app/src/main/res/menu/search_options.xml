@@ -7,7 +7,7 @@
         android:id="@+id/action_close"
         android:icon="@android:drawable/ic_menu_close_clear_cancel"
         app:showAsAction="always"
-        android:title="Close" />
+        android:title="@string/close" />
 
 
 </menu>

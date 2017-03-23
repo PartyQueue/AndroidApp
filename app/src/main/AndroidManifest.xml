@@ -10,12 +10,14 @@
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
+        android:icon="@drawable/ic_partyqueue"
         android:name="com.shaneschulte.partyqueue.PartyApp"
         android:theme="@style/AppTheme">
         <service
             android:name=".HostingService.PartyService"
             android:label="Hosting Party" >
         </service>
+        <service android:name=".PresentationService" android:exported="false" />
         <activity
             android:name=".Activities.LandingActivity"
             android:label="@string/app_name">
@@ -31,8 +33,10 @@
             android:name="com.spotify.sdk.android.authentication.LoginActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity android:name=".Activities.SearchActivity" android:label="Search Results"/>
-        <activity android:name=".Activities.HostActivity" />
+        <activity android:name=".Activities.HelpActivity" />
+        <activity android:name=".Activities.HostActivity" android:launchMode="singleTask" />
         <activity android:name=".Activities.ClientActivity">
+
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>

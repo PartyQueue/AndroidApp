@@ -89,13 +89,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/nowThumbnail"
-            android:text="5:45"
             android:layout_margin="1dp"
             android:gravity="left"
             android:padding="2dp"
             android:layout_alignLeft="@+id/nowThumbnail"
             android:background="#AA000000"
-            android:textSize="12dip"
+            android:textSize="12sp"
             android:textColor="#CCC"
             android:textStyle="bold"/>
 

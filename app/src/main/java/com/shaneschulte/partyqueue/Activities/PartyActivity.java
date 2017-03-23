@@ -6,16 +6,20 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaRouter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -44,15 +48,15 @@ public abstract class PartyActivity extends AppCompatActivity {
     //UI Garbage
     protected int oldColor;
     protected ListView listView;
-    //protected Chronometer duration;
     protected RelativeLayout nowPlayingLayout;
     protected RelativeLayout backgroundZone;
-    protected TextView nothingQueued, songName, artistName, addedBy;
+    protected TextView nothingQueued, songName, artistName, addedBy, duration;
     protected ImageView fadedArt, albumArt;
     protected RelativeLayout gradientZone;
     protected MenuItem searchMenuItem;
     protected SearchView searchView;
     protected TrackAdapter trackAdapter;
+    protected CountDownTimer cd;
 
     protected String getMyHostname() {
         if(__hostname != null) return __hostname;
@@ -85,7 +89,7 @@ public abstract class PartyActivity extends AppCompatActivity {
         nothingQueued = (TextView) findViewById(R.id.nothingPlaying);
         artistName = (TextView) findViewById(R.id.nowArtist);
         songName = (TextView) findViewById(R.id.nowTitle);
-        //duration = (Chronometer) findViewById(R.id.nowDuration);
+        duration = (TextView) findViewById(R.id.nowDuration);
         addedBy = (TextView) findViewById(R.id.nowAddedBy);
         albumArt = (ImageView) findViewById(R.id.nowImage);
         nowPlayingLayout = (RelativeLayout) findViewById(R.id.nowPlayingLayout);
@@ -95,6 +99,7 @@ public abstract class PartyActivity extends AppCompatActivity {
         trackAdapter = new TrackAdapter(this, new ArrayList<>());
         listView.setAdapter(trackAdapter);
 
+        cd = new CountDown(0);
 
         target = new Target() {
             @Override
@@ -125,15 +130,34 @@ public abstract class PartyActivity extends AppCompatActivity {
         }
     }
 
-    public void playNewSong(SongRequest r) {
+    protected class CountDown extends CountDownTimer {
+        protected CountDown(long millisInFuture) {
+            super(millisInFuture, 1000);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            duration.setText(Utils.timeString(millisUntilFinished));
+        }
+
+        @Override
+        public void onFinish() {
+            duration.setText("0:00");
+            timerFinished();
+        }
+    }
+
+    protected void timerFinished() {}
+
+    public void playNewSong(SongRequest r, long time) {
         //Update UI
         togglePlaying(true);
         Track track = r.getMeta();
         songName.setText(track.name);
         artistName.setText(Utils.artistString(track.artists));
         addedBy.setText(getString(R.string.addedBy, r.addedBy));
-        //duration.setBase(SystemClock.elapsedRealtime() + track.duration_ms);
-        //duration.start();
+        cd.cancel();
+        cd = new CountDown(time).start();
         Picasso.with(this).load(track.album.images.get(0).url).into(target);
     }
 

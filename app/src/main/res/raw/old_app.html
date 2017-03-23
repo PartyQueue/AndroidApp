@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+    <title>Spotify Party Queue</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script>
+      $(document).ready(function() {
+        $("#search").submit(function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: 'https://api.spotify.com/v1/search',
+            data: {
+                q: $("#searchbar").val(),
+                type: 'track'
+            },
+            success: function (response) {
+                $('#dynamic-results').html('');
+                $.each(response.tracks.items, function(k,v) {
+                  $("#original .song").html(v.name);
+                  artist_name = '';
+                  $.each(v.artists, function(art, ist) {
+                    artist_name += ist.name + ', ';
+                  });
+                  artist_name = artist_name.substring(0, artist_name.length-2);
+                  $("#original .artist").html(artist_name);
+                  $("#original .album").attr("src", v.album.images[2].url);
+                  $("#original").clone().toggleClass("hidden").attr("id",v.id).appendTo("#dynamic-results");
+                  $("#"+v.id).click(function() {
+                    $.post("http://"+window.location.host+"/add", {'track': $(this).attr("id")}, function(data) {
+                      $('#dynamic-results').html('<p class="successful">Your song was added to the queue.</p>');
+                    });
+
+                  });
+                });
+            }
+        });
+      });
+    });
+    </script>
+    <style type="text/css">
+      body {
+        background-color:#181818;
+        color:white;
+      }
+
+      h1 {
+        text-align:center;
+      }
+      .result {
+        //padding:10pt;
+        font-size:14pt;
+        overflow:hidden;
+        height:64px;
+        border-style:solid;
+        border-color:#333;
+        border-width:0px 0px 1px 0px;
+        margin:0px 0px;
+      }
+      .result p {
+        margin:0px;
+      }
+      .successful {
+        text-align:center;
+        color:#aaa;
+        font-size:14pt;
+      }
+      .desc {
+        padding-left:74px;
+        padding-top:8px;
+        margin:auto;
+      }
+      .artist {
+        color:#aaa;
+        font-size:11pt;
+      }
+      .nopad {
+        padding:0px;
+      }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Party Queue for Spotify</h1>
+    <form id="search">
+      <div class="input-group" style="margin:16px 0px;">
+        <input type="text" id="searchbar" class="form-control" placeholder="Search for...">
+        <span class="input-group-btn">
+          <button class="btn btn-success" type="submit"><span class="glyphicon glyphicon-search"></span></button>
+        </span>
+      </div>
+    </form>
+
+    <div class="row result hidden" id="original">
+      <div class="col-sm-12 nopad">
+        <img class="album" src="https://i.scdn.co/image/37b46a2662c09502885d1804c1c865b199cc3d67" width="64" height="64" style="float:left;"/>
+        <div class="desc">
+          <p class="song">Test me</p>
+          <p class="artist">The xx</p>
+        </div>
+      </div>
+    </div>
+    <div id="dynamic-results">
+
+    </div>
+
+
+
+
+  </div>
+</body>
+</html>

@@ -70,11 +70,14 @@ class AndroidWebServer extends NanoHTTPD {
                     else addedBy = session.getParameters().get("addedBy").get(0);
                     track = session.getParameters().get("track").get(0);
 
-                    mManager.requestNewSong(track, addedBy, session.getRemoteIpAddress());
+                    addedBy = addedBy.replaceAll("[^A-Za-z0-9 ]", "");
+                    addedBy = addedBy.substring(0, 20);
 
-                    //SongRequest r = new SongRequest(track, addedBy, session.getRemoteIpAddress());
-                    /*unprocessed.add(r);
-                    */
+                    if(mManager.alreadyPlayed(track)) {
+                        return newFixedLengthResponse(Response.Status.CONFLICT, NanoHTTPD.MIME_PLAINTEXT, "");
+                    }
+
+                    mManager.requestNewSong(track, addedBy, session.getRemoteIpAddress());
 
                     return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
                 }
@@ -90,18 +93,14 @@ class AndroidWebServer extends NanoHTTPD {
                 if(session.getUri().equals("/favicon.ico")) {
                     return newFixedLengthResponse(Response.Status.OK, "image/x-icon", res.openRawResource(R.raw.favicon), -1);
                 }
+                if(session.getUri().equals("/country")) {
+                    if(mManager.hasCountry()) return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, mManager.getCountry());
+                    else return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+                }
 
                 // Request for current queue
                 if(session.getUri().equals("/queue")) {
-                    JSONArray arr = new JSONArray();
-                    if(mManager.getNowPlaying() != null) arr.put(mManager.getNowPlaying().json);
-                    for(int i = 0; i < mManager.getQueue().size(); ++i) {
-                        JSONObject o = mManager.getQueue().get(i).json;
-                        if (o != null) {
-                            arr.put(o);
-                        }
-                    }
-                    return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, arr.toString());
+                    return newFixedLengthResponse(Response.Status.OK, "text/json", mManager.getQueueJSON().toString());
                 }
                 break;
             default:

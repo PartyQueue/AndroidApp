@@ -4,25 +4,38 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.media.session.IMediaSession;
 import android.util.Log;
 
 import com.shaneschulte.partyqueue.Activities.HostActivity;
+import com.shaneschulte.partyqueue.Events.SongAddEvent;
+import com.shaneschulte.partyqueue.Events.SongChangeEvent;
+import com.shaneschulte.partyqueue.Events.SongPausePlayEvent;
+import com.shaneschulte.partyqueue.Events.SongRemoveEvent;
+import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.R;
 import com.shaneschulte.partyqueue.SongRequest;
+import com.shaneschulte.partyqueue.Utils;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Error;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
+import com.squareup.otto.Subscribe;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -37,6 +50,7 @@ import rxbonjour.broadcast.BonjourBroadcast;
 public class PartyService extends Service implements SpotifyPlayer.NotificationCallback, ConnectionStateCallback {
 
     public final String TAG = "PartyService";
+    public final static int NOTEID = 5760;
 
     private String CLIENT_ID;
 
@@ -48,12 +62,21 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
     private AndroidWebServer mServer;
     private Subscription nsd;
 
+    public static final String ACTION_NEXT = "com.shaneschulte.partyqueue.action_skip";
+    public static final String ACTION_PP = "com.shaneschulte.partyqueue.action_pp";
+    private static boolean initialized = false;
+
+    public static boolean hasAuth() {
+        return initialized;
+    }
+
     @Override
     public void onCreate() {
         Log.d(TAG, "Party Service Created");
         CLIENT_ID = this.getString(R.string.CLIENT_ID);
         mManager = new SongRequestManager();
         mServer = new AndroidWebServer(8000, getResources(), mManager);
+        initialized = false;
     }
 
     private void registerService(String name, int port) {
@@ -67,77 +90,144 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "Party Service Started");
+        Log.d(TAG, "Start Command Triggered");
+        if(intent == null) return mStartMode;
+        if(intent.hasExtra("AuthToken") && !initialized) {
+            initialized = true;
+            SpotifyApi api = new SpotifyApi().setAccessToken(intent.getStringExtra("AuthToken"));
+
+            // Attempt to register server to their name
+            api.getService().getMe(new Callback<UserPrivate>() {
+                @Override
+                public void success(UserPrivate userPrivate, Response response) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        Log.d("SpotifyMetadata", "Success, name: "+userPrivate.display_name);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            registerService(userPrivate.display_name, 8000);
+                            mManager.setCountry(userPrivate.country);
+                        }
+                    }
+                }
+
+
+                @Override
+                public void failure(RetrofitError error) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        Log.d("SpotifyMetadata", "Failed, reverting to 'Party Queue'");
+                        registerService("Party Queue", 8000);
+                    }
+                }
+            });
+
+            startPlayer(intent.getStringExtra("AuthToken"));
+
+            PartyApp.getInstance().getBus().register(this);
+
+            startForeground(NOTEID, buildNote(null, false));
+            return mStartMode;
+        }
+        String action = intent.getAction();
+        if(action != null) {
+            if (action.equals(ACTION_NEXT)) {
+                Log.d(TAG, "SKIP REQUESTED");
+                mManager.skipSong();
+            } else if (action.equals(ACTION_PP)) {
+                Log.d(TAG, "Pause/Play requested");
+                mManager.playPause();
+            }
+        }
         return mStartMode;
+    }
+
+    @Subscribe
+    public void onSongChange(SongChangeEvent e) {
+        startForeground(NOTEID, buildNote(e.request, false));
+    }
+
+    @Subscribe
+    public void onSongPlay(SongPausePlayEvent e) {
+        startForeground(NOTEID, buildNote(mManager.getNowPlaying(), e.paused));
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "Party Service Bound");
+        return mBinder;
+    }
 
-        SpotifyApi api = new SpotifyApi().setAccessToken(intent.getStringExtra("AuthToken"));
-
-        // Attempt to register server to their name
-        api.getService().getMe(new Callback<UserPrivate>() {
-            @Override
-            public void success(UserPrivate userPrivate, Response response) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    Log.d("SpotifyMetadata", "Success, name: "+userPrivate.display_name);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                        registerService(userPrivate.display_name, 8000);
-                    }
-                }
-            }
-
-
-            @Override
-            public void failure(RetrofitError error) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    Log.d("SpotifyMetadata", "Failed, reverting to 'Party Queue'");
-                    registerService("Party Queue", 8000);
-                }
-            }
-        });
-
-        startPlayer(intent.getStringExtra("AuthToken"));
-
-        Intent resultIntent = new Intent(this, HostActivity.class);
-
+    private Notification buildNote(SongRequest r, boolean paused) {
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(
                         this,
                         0,
-                        resultIntent,
+                        new Intent(this, HostActivity.class),
                         PendingIntent.FLAG_UPDATE_CURRENT
                 );
 
+        PendingIntent skipPendingIntent =
+                PendingIntent.getService(
+                        this,
+                        0,
+                        new Intent(this, PartyService.class).setAction(ACTION_NEXT),
+                        0
+                );
+
+        PendingIntent ppPendingIntent =
+                PendingIntent.getService(
+                        this,
+                        0,
+                        new Intent(this, PartyService.class).setAction(ACTION_PP),
+                        0
+                );
+
+        String title, artist;
+        if(r != null) {
+            title = r.getMeta().name;
+            artist = Utils.artistString(r.getMeta().artists);
+        }
+        else {
+            title = "Nothing Playing";
+            artist = "Add songs to the queue to get started!";
+        }
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_light)
-                        .setContentTitle("My notification")
-                        .setContentText("Hello World!")
+                        .setSmallIcon(R.drawable.ic_android_notification)
+                        .setContentTitle(title)
+                        .setContentText(artist)
                         .setContentIntent(resultPendingIntent);
 
+        mBuilder.setShowWhen(false);
+        mBuilder.setColor(Color.argb(255, 30, 215, 96));
+
+        if(paused) mBuilder.addAction(R.drawable.ic_media_play_light, "Resume Playing", ppPendingIntent);
+        else if(r != null) mBuilder.addAction(R.drawable.ic_media_stop_light, "Skip This Song", skipPendingIntent);
         Notification note = mBuilder.build();
         note.flags|=Notification.FLAG_NO_CLEAR;
-
-        startForeground(5760, note);
-        return mBinder;
+        return note;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
         Log.d(TAG, "Party Service Unbound");
-
         return mAllowRebind;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.d(TAG, "Party Service Rebound");
     }
 
 
     @Override
     public void onDestroy() {
         Log.d(TAG, "Party Service Destroyed");
+        PartyApp.getInstance().getBus().unregister(this);
+        mManager.cleanUp();
 
-        Spotify.destroyPlayer(this);
+        if(initialized) {
+            Spotify.destroyPlayer(this);
+            initialized = false;
+        }
 
         if(nsd != null) nsd.unsubscribe();
 
@@ -151,8 +241,18 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
         return mManager.getQueue();
     }
 
+    public boolean isPaused() { return mManager.isPaused(); };
+
     public SongRequest getNowPlaying() {
         return mManager.getNowPlaying();
+    }
+
+    public long getTimeRemaining() {
+        return mManager.getTimeRemaining();
+    }
+
+    public void removeSong(SongRequest item) {
+        mManager.removeRequest(item.track, "host");
     }
 
     public class PartyServiceBinder extends Binder {

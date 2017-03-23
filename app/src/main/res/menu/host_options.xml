@@ -3,23 +3,38 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- "Mark Favorite", should appear as action button if possible -->
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/search"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="always|collapseActionView"
+        />
+    <item
+        android:id="@+id/media_route_menu_item"
+        android:title="@string/media_route_menu_title"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="always"/>
+    <!-- Settings, should always be in the overflow -->
+
+    <item android:id="@+id/action_pp"
+        android:title="@string/pause"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_skip"
+        android:title="@string/skip"
+        app:showAsAction="never"/>
+
     <item
         android:id="@+id/action_share"
         app:actionProviderClass=
             "android.support.v7.widget.ShareActionProvider"
-        android:title="Share Link"
+        android:title="@string/share_link"
         app:showAsAction="never"/>
-    <item
-        android:id="@+id/action_search"
-        android:icon="@android:drawable/ic_menu_search"
-        android:title="Search..."
-        app:actionViewClass="android.support.v7.widget.SearchView"
-        app:showAsAction="always|collapseActionView"
-        />
 
-    <!-- Settings, should always be in the overflow -->
     <item android:id="@+id/action_end"
-        android:title="Stop Hosting"
+        android:title="@string/stop_hosting"
         app:showAsAction="never"/>
 
 </menu>

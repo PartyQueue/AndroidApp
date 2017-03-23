@@ -4,18 +4,25 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.shaneschulte.partyqueue.Events.QueueResetEvent;
 import com.shaneschulte.partyqueue.Events.SongAddEvent;
 import com.shaneschulte.partyqueue.Events.SongChangeEvent;
-import com.shaneschulte.partyqueue.Events.SongPauseEvent;
-import com.shaneschulte.partyqueue.Events.SongPlayEvent;
+import com.shaneschulte.partyqueue.Events.SongPausePlayEvent;
 import com.shaneschulte.partyqueue.Events.SongRemoveEvent;
 import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.SongRequest;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.SpotifyPlayer;
+import com.squareup.otto.Produce;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,18 +30,25 @@ import java.util.Set;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.Tracks;
 import retrofit.Callback;
 import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 class SongRequestManager {
 
     private SpotifyPlayer mPlayer;
     private SpotifyService spotify;
-    private List<SongRequest> songQueue;
+    private List<SongRequest> songQueue, beforeQueue;
     private SongRequest       songNowPlaying;
+
+    public static final int LENGTH_KEEP = 1800; // Prevent for 0.5 hours after play
 
     private static final String TAG = "SongRequestManager";
     private boolean loggedIn;
+    private HashMap<String, Integer> alreadyPlayedMap;
+    private String country;
+    private boolean paused;
 
     SongRequestManager() {
         SpotifyApi api = new SpotifyApi();
@@ -42,8 +56,13 @@ class SongRequestManager {
 
         songNowPlaying = null;
         loggedIn = false;
+        paused = true;
 
+        PartyApp.getInstance().getBus().register(this);
+
+        beforeQueue = new ArrayList<>();
         songQueue   = new ArrayList<>();
+        alreadyPlayedMap = new HashMap<>();
     }
 
     void startPlayer(SpotifyPlayer mPlayer) {
@@ -56,8 +75,34 @@ class SongRequestManager {
         playNextSong();
     }
 
+    void cleanUp() {
+        PartyApp.getInstance().getBus().unregister(this);
+    }
+
     void logOut() {
         loggedIn = false;
+    }
+
+    void setCountry(String s) {
+        this.country = s;
+    }
+    String getCountry() {
+        return country;
+    }
+    public boolean hasCountry() {
+        return country != null;
+    }
+
+    public JSONArray getQueueJSON() {
+        JSONArray arr = new JSONArray();
+        if(getNowPlaying() != null) arr.put(getNowPlayingJSON());
+        for(int i = 0; i < getQueue().size(); ++i) {
+            JSONObject o = getQueue().get(i).json;
+            if (o != null) {
+                arr.put(o);
+            }
+        }
+        return arr;
     }
 
     synchronized private void playNextSong() {
@@ -66,21 +111,27 @@ class SongRequestManager {
 
         if(songQueue.isEmpty()) {
             songNowPlaying = null;
+            postEvent(new SongChangeEvent(null));
             return;
         }
 
         songNowPlaying = songQueue.get(0);
+        alreadyPlayedMap.put(songNowPlaying.track, Calendar.getInstance().get(Calendar.SECOND));
         songQueue.remove(0);
 
         mPlayer.playUri(null, "spotify:track:"+songNowPlaying.track, 0, 0);
         postEvent(new SongChangeEvent(songNowPlaying));
     }
 
-    private boolean isInQueue(String track) {
-        for(SongRequest r : songQueue) {
-            if(r.track.equals(track)) {
-                return true;
-            }
+    boolean alreadyPlayed(String track) {
+        for(SongRequest r : beforeQueue) if(r.track.equals(track)) return true;
+        for(SongRequest r : songQueue) if(r.track.equals(track)) return true;
+
+        int time = Calendar.getInstance().get(Calendar.SECOND);
+
+        for(String r : alreadyPlayedMap.keySet()) {
+            if(time - LENGTH_KEEP > alreadyPlayedMap.get(r)) continue;
+            if(r.equals(track)) return true;
         }
         return false;
     }
@@ -100,10 +151,10 @@ class SongRequestManager {
 
     void requestNewSong(String track, String addedBy, String remoteIpAddress) {
         SongRequest r = new SongRequest(track, addedBy, remoteIpAddress);
+        beforeQueue.add(r);
         spotify.getTrack(track, new Callback<Track>() {
             @Override
             public void success(Track track, retrofit.client.Response response) {
-                if(isInQueue(r.track)) return;
                 r.setMeta(track);
                 if(songNowPlaying == null) {
                     songQueue.add(r);
@@ -114,6 +165,7 @@ class SongRequestManager {
                     songQueue.add(index, r);
                     postEvent(new SongAddEvent(r, index));
                 }
+                beforeQueue.remove(r);
             }
 
             @Override
@@ -129,10 +181,12 @@ class SongRequestManager {
                 mPlayer.resume(null);
                 break;
             case kSpPlaybackNotifyPause:
-                postEvent(new SongPauseEvent());
+                postEvent(new SongPausePlayEvent(true, getTimeRemaining()));
+                paused = true;
                 break;
             case kSpPlaybackNotifyPlay:
-                postEvent(new SongPlayEvent());
+                postEvent(new SongPausePlayEvent(false, getTimeRemaining()));
+                paused = false;
                 break;
             case kSpPlaybackNotifyAudioDeliveryDone:
                 playNextSong();
@@ -140,6 +194,11 @@ class SongRequestManager {
             default:
                 break;
         }
+    }
+
+    @Produce
+    public SongPausePlayEvent lastEvent() {
+        return new SongPausePlayEvent(paused, getTimeRemaining());
     }
 
     List<SongRequest> getQueue() {
@@ -157,9 +216,10 @@ class SongRequestManager {
     boolean removeRequest(String track, String ip) {
         for(SongRequest r : songQueue) {
             if(track.equals(r.track)) {
-                if(ip.equals(r.ip)) {
+                if(ip.equals(r.ip) || ip.equals("host")) {
                     postEvent(new SongRemoveEvent(r));
                     songQueue.remove(r);
+                    alreadyPlayedMap.remove(r.track);
                     return true;
                 }
                 return false;
@@ -167,4 +227,37 @@ class SongRequestManager {
         }
         return false;
     }
+
+    public long getTimeRemaining() {
+        if(songNowPlaying == null) return 0;
+        return songNowPlaying.getMeta().duration_ms - mPlayer.getPlaybackState().positionMs;
+    }
+
+    public JSONObject getNowPlayingJSON() {
+        if(songNowPlaying == null) return null;
+        try {
+            JSONObject clone = new JSONObject(songNowPlaying.json.toString());
+            long time = songNowPlaying.getMeta().duration_ms - mPlayer.getPlaybackState().positionMs;
+            if(!mPlayer.getPlaybackState().isPlaying) time = Math.max(30000, time);
+            return clone.put("time", time);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void skipSong() {
+        if(!songQueue.isEmpty()) playNextSong();
+    }
+
+    public void playPause() {
+        if(songNowPlaying == null) return;
+        if(paused) mPlayer.resume(null);
+        else mPlayer.pause(null);
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
 }
