@@ -12,10 +12,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.shaneschulte.partyqueue.Activities.HostActivity;
-import com.shaneschulte.partyqueue.Events.SongAddEvent;
 import com.shaneschulte.partyqueue.Events.SongChangeEvent;
 import com.shaneschulte.partyqueue.Events.SongPausePlayEvent;
-import com.shaneschulte.partyqueue.Events.SongRemoveEvent;
 import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.R;
 import com.shaneschulte.partyqueue.SongRequest;
@@ -28,13 +26,6 @@ import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
 import com.squareup.otto.Subscribe;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -241,7 +232,7 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
         return mManager.getQueue();
     }
 
-    public boolean isPaused() { return mManager.isPaused(); };
+    public boolean isPaused() { return mManager.isPaused(); }
 
     public SongRequest getNowPlaying() {
         return mManager.getNowPlaying();

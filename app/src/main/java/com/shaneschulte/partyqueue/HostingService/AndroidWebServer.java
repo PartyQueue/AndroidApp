@@ -4,9 +4,6 @@ import android.content.res.Resources;
 
 import com.shaneschulte.partyqueue.R;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -71,7 +68,7 @@ class AndroidWebServer extends NanoHTTPD {
                     track = session.getParameters().get("track").get(0);
 
                     addedBy = addedBy.replaceAll("[^A-Za-z0-9 ]", "");
-                    addedBy = addedBy.substring(0, 20);
+                    addedBy = addedBy.substring(0, Math.min(addedBy.length(), 15));
 
                     if(mManager.alreadyPlayed(track)) {
                         return newFixedLengthResponse(Response.Status.CONFLICT, NanoHTTPD.MIME_PLAINTEXT, "");

@@ -17,7 +17,6 @@
             android:name=".HostingService.PartyService"
             android:label="Hosting Party" >
         </service>
-        <service android:name=".PresentationService" android:exported="false" />
         <activity
             android:name=".Activities.LandingActivity"
             android:label="@string/app_name">

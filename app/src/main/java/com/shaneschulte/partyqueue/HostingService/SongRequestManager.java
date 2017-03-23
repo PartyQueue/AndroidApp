@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.shaneschulte.partyqueue.Events.QueueResetEvent;
 import com.shaneschulte.partyqueue.Events.SongAddEvent;
 import com.shaneschulte.partyqueue.Events.SongChangeEvent;
 import com.shaneschulte.partyqueue.Events.SongPausePlayEvent;
@@ -30,10 +29,8 @@ import java.util.Set;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.Tracks;
 import retrofit.Callback;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 class SongRequestManager {
 

@@ -95,7 +95,7 @@ public class ClientActivity extends PartyActivity {
                 timeT           = a.has("time")    ? a.getLong("time")+1000 : timeT;
 
                 addedBy = addedBy.replaceAll("[^A-Za-z0-9 ]", "");
-                addedBy = addedBy.substring(0, 20);
+                addedBy = addedBy.substring(0, Math.min(addedBy.length(), 15));
 
                 reqs.add(new SongRequest(track, addedBy, ip, i));
                 builder.append(track);
