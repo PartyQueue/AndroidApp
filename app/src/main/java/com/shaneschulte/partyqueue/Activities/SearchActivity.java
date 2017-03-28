@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.Activities;
+package com.shaneschulte.partyqueue.activities;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -37,6 +37,7 @@ public class SearchActivity extends AppCompatActivity {
     TrackAdapter adapter;
     ArrayList<SongRequest> results;
     String host_add_url;
+    String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,7 @@ public class SearchActivity extends AppCompatActivity {
         // Register Spotify web API objects
         SpotifyApi api = new SpotifyApi();
         spotify = api.getService();
+        username = getIntent().getStringExtra("name");
 
         // Configure ListView
         results = new ArrayList<>();
@@ -97,7 +99,7 @@ public class SearchActivity extends AppCompatActivity {
                 protected Map<String, String> getParams() {
                     Map<String, String> params = new HashMap<>();
                     params.put("track", request.track.replace("spotify:track:", ""));
-                    params.put("addedBy", "Shane");
+                    params.put("addedBy", username);
                     return params;
                 }
         });

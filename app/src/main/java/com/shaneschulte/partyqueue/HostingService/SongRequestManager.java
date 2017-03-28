@@ -1,13 +1,13 @@
-package com.shaneschulte.partyqueue.HostingService;
+package com.shaneschulte.partyqueue.hostingservice;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.shaneschulte.partyqueue.Events.SongAddEvent;
-import com.shaneschulte.partyqueue.Events.SongChangeEvent;
-import com.shaneschulte.partyqueue.Events.SongPausePlayEvent;
-import com.shaneschulte.partyqueue.Events.SongRemoveEvent;
+import com.shaneschulte.partyqueue.events.SongAddEvent;
+import com.shaneschulte.partyqueue.events.SongChangeEvent;
+import com.shaneschulte.partyqueue.events.SongPausePlayEvent;
+import com.shaneschulte.partyqueue.events.SongRemoveEvent;
 import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.SongRequest;
 import com.spotify.sdk.android.player.PlayerEvent;
@@ -202,7 +202,7 @@ class SongRequestManager {
         return Collections.unmodifiableList(songQueue);
     }
 
-    private void postEvent(Object o) {
+    public void postEvent(Object o) {
         new Handler(Looper.getMainLooper()).post(() -> PartyApp.getInstance().getBus().post(o));
     }
 

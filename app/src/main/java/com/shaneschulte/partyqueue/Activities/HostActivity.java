@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.Activities;
+package com.shaneschulte.partyqueue.activities;
 
 import android.app.SearchManager;
 import android.content.ComponentName;
@@ -15,12 +15,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.shaneschulte.partyqueue.Events.QueueResetEvent;
-import com.shaneschulte.partyqueue.Events.SongAddEvent;
-import com.shaneschulte.partyqueue.Events.SongChangeEvent;
-import com.shaneschulte.partyqueue.Events.SongPausePlayEvent;
-import com.shaneschulte.partyqueue.Events.SongRemoveEvent;
-import com.shaneschulte.partyqueue.HostingService.PartyService;
+import com.shaneschulte.partyqueue.events.NameChangeEvent;
+import com.shaneschulte.partyqueue.events.QueueResetEvent;
+import com.shaneschulte.partyqueue.events.SongAddEvent;
+import com.shaneschulte.partyqueue.events.SongChangeEvent;
+import com.shaneschulte.partyqueue.events.SongPausePlayEvent;
+import com.shaneschulte.partyqueue.events.SongRemoveEvent;
+import com.shaneschulte.partyqueue.hostingservice.PartyService;
 import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.R;
 import com.shaneschulte.partyqueue.SongRequest;
@@ -45,6 +46,7 @@ public class HostActivity extends PartyActivity {
     // SongRequest code that will be used to verify if the result comes from correct activity
     // Can be any integer
     private static final int REQUEST_CODE = 5670;
+    private String username;
 
     private MenuItem mPP;
 
@@ -53,6 +55,8 @@ public class HostActivity extends PartyActivity {
         setContentView(R.layout.activity_host);
 
         super.onCreate(savedInstanceState);
+
+        username = "Host";
 
         listView.setLongClickable(true);
         listView.setOnItemLongClickListener((parent, v, position, id) -> {
@@ -164,6 +168,11 @@ public class HostActivity extends PartyActivity {
     }
 
     @Subscribe
+    public void onNameEvent (NameChangeEvent e){
+        username = e.username;
+    }
+
+    @Subscribe
     public void onPausePlay(SongPausePlayEvent e) {
         if(mPP == null) return;
         if(e.paused) {
@@ -208,6 +217,7 @@ public class HostActivity extends PartyActivity {
             public boolean onQueryTextSubmit(String query) {
                 Log.d("SEARCH", "User searched for "+query);
                 Intent searchIntent = new Intent(HostActivity.this, SearchActivity.class);
+                searchIntent.putExtra("name", username);
                 searchIntent.putExtra("query", query);
                 searchIntent.putExtra("HOST_URL", "http://"+getMyHostname()+":8000/add");
                 startActivity(searchIntent);

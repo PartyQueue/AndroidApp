@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.Activities;
+package com.shaneschulte.partyqueue.activities;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;

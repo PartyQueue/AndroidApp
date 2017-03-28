@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.HostingService;
+package com.shaneschulte.partyqueue.hostingservice;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -11,9 +11,10 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.shaneschulte.partyqueue.Activities.HostActivity;
-import com.shaneschulte.partyqueue.Events.SongChangeEvent;
-import com.shaneschulte.partyqueue.Events.SongPausePlayEvent;
+import com.shaneschulte.partyqueue.activities.HostActivity;
+import com.shaneschulte.partyqueue.events.NameChangeEvent;
+import com.shaneschulte.partyqueue.events.SongChangeEvent;
+import com.shaneschulte.partyqueue.events.SongPausePlayEvent;
 import com.shaneschulte.partyqueue.PartyApp;
 import com.shaneschulte.partyqueue.R;
 import com.shaneschulte.partyqueue.SongRequest;
@@ -24,6 +25,7 @@ import com.spotify.sdk.android.player.Error;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
+import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
@@ -56,6 +58,7 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
     public static final String ACTION_NEXT = "com.shaneschulte.partyqueue.action_skip";
     public static final String ACTION_PP = "com.shaneschulte.partyqueue.action_pp";
     private static boolean initialized = false;
+    private String username;
 
     public static boolean hasAuth() {
         return initialized;
@@ -63,6 +66,7 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
 
     @Override
     public void onCreate() {
+        username = "Host";
         Log.d(TAG, "Party Service Created");
         CLIENT_ID = this.getString(R.string.CLIENT_ID);
         mManager = new SongRequestManager();
@@ -94,6 +98,8 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                         Log.d("SpotifyMetadata", "Success, name: "+userPrivate.display_name);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            username = userPrivate.display_name;
+                            mManager.postEvent(new NameChangeEvent(userPrivate.display_name));
                             registerService(userPrivate.display_name, 8000);
                             mManager.setCountry(userPrivate.country);
                         }
@@ -190,8 +196,8 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
         mBuilder.setShowWhen(false);
         mBuilder.setColor(Color.argb(255, 30, 215, 96));
 
-        if(paused) mBuilder.addAction(R.drawable.ic_media_play_light, "Resume Playing", ppPendingIntent);
-        else if(r != null) mBuilder.addAction(R.drawable.ic_media_stop_light, "Skip This Song", skipPendingIntent);
+        if(paused) mBuilder.addAction(R.drawable.ic_play_dark, "Resume Playing", ppPendingIntent);
+        else if(r != null) mBuilder.addAction(R.drawable.cast_ic_notification_skip_next, "Skip This Song", skipPendingIntent);
         Notification note = mBuilder.build();
         note.flags|=Notification.FLAG_NO_CLEAR;
         return note;
@@ -244,6 +250,11 @@ public class PartyService extends Service implements SpotifyPlayer.NotificationC
 
     public void removeSong(SongRequest item) {
         mManager.removeRequest(item.track, "host");
+    }
+
+    @Produce
+    public NameChangeEvent getName() {
+        return new NameChangeEvent(username);
     }
 
     public class PartyServiceBinder extends Binder {

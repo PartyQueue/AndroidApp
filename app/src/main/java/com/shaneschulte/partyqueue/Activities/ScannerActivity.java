@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.Activities;
+package com.shaneschulte.partyqueue.activities;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +25,7 @@ public class ScannerActivity extends AppCompatActivity {
     private List<Integer> ports;
     private ArrayAdapter<String> arrayAdapter;
     private Subscription sub;
+    private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +36,8 @@ public class ScannerActivity extends AppCompatActivity {
         List<String> services =     new ArrayList<>();
         hosts =                     new ArrayList<>();
         ports =                     new ArrayList<>();
+
+        username = getIntent().getStringExtra("name");
 
         ListView listView = (ListView) findViewById(R.id.serviceList);
         arrayAdapter = new ArrayAdapter<>(
@@ -47,6 +50,7 @@ public class ScannerActivity extends AppCompatActivity {
             Intent intent = new Intent(getBaseContext(), ClientActivity.class);
             final String host_url = "http:/" + hosts.get(position) + ":" + ports.get(position);
             intent.putExtra("HOST_URL", host_url);
+            intent.putExtra("name", username);
 
             startActivity(intent);
             finish();

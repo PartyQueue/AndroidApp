@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.Activities;
+package com.shaneschulte.partyqueue.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -38,6 +38,8 @@ public class ClientActivity extends PartyActivity {
     private String hostname;
     private SwipeRefreshLayout mRefresh;
 
+    private String username;
+
     private SpotifyService spotify;
 
     @Override
@@ -54,6 +56,7 @@ public class ClientActivity extends PartyActivity {
                 Intent searchIntent = new Intent(ClientActivity.this, SearchActivity.class);
                 searchIntent.putExtra("query", query);
                 searchIntent.putExtra("HOST_URL", hostname+"/add");
+                searchIntent.putExtra("name", username);
                 startActivity(searchIntent);
                 return false;
             }
@@ -141,7 +144,7 @@ public class ClientActivity extends PartyActivity {
 
         super.onCreate(savedInstanceState);
 
-
+        username = getIntent().getStringExtra("name");
 
         prevJson = "";
         SpotifyApi api = new SpotifyApi();

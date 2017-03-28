@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.HostingService;
+package com.shaneschulte.partyqueue.hostingservice;
 
 import android.content.res.Resources;
 

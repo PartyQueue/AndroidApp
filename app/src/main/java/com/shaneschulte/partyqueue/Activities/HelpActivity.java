@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.Activities;
+package com.shaneschulte.partyqueue.activities;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

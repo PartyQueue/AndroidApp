@@ -1,4 +1,4 @@
-package com.shaneschulte.partyqueue.Events;
+package com.shaneschulte.partyqueue.events;
 
 import com.shaneschulte.partyqueue.SongRequest;
 

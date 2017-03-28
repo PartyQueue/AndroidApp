@@ -5,20 +5,19 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
-    <uses-permission android:name="android.permission.NFC" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:label="@string/app_name"
         android:icon="@drawable/ic_partyqueue"
         android:name="com.shaneschulte.partyqueue.PartyApp"
         android:theme="@style/AppTheme">
         <service
-            android:name=".HostingService.PartyService"
+            android:name=".hostingservice.PartyService"
             android:label="Hosting Party" >
         </service>
         <activity
-            android:name=".Activities.LandingActivity"
+            android:name=".activities.LandingActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,10 +30,10 @@
         <activity
             android:name="com.spotify.sdk.android.authentication.LoginActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity android:name=".Activities.SearchActivity" android:label="Search Results"/>
-        <activity android:name=".Activities.HelpActivity" />
-        <activity android:name=".Activities.HostActivity" android:launchMode="singleTask" />
-        <activity android:name=".Activities.ClientActivity">
+        <activity android:name=".activities.SearchActivity" android:label="Search Results"/>
+        <activity android:name=".activities.HelpActivity" />
+        <activity android:name=".activities.HostActivity" android:launchMode="singleTask" />
+        <activity android:name=".activities.ClientActivity">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
@@ -47,7 +46,7 @@
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
-        <activity android:name=".Activities.ScannerActivity"></activity><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
+        <activity android:name=".activities.ScannerActivity" /><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
      App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information. -->
         <meta-data
             android:name="com.google.android.gms.version"
